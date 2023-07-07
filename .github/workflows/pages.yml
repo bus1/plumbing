@@ -1,0 +1,62 @@
+#
+# Build and Deploy Web Pages
+#
+# Build the static web-pages and, if required, deploy them to the production
+# systems.
+#
+
+name: "Web Pages"
+
+on:
+  pull_request:
+  push:
+    branches-ignore: ["pr/**"]
+    tags: ["**"]
+  workflow_dispatch:
+
+defaults:
+  run:
+    shell: "bash"
+
+jobs:
+  deploy:
+    name: "Deploy Web Pages"
+
+    container:
+      image: "ghcr.io/bus1/plumbing:latest"
+    if: github.event_name == 'workflow_dispatch'
+    runs-on: "ubuntu-latest"
+
+    steps:
+    - name: "Fetch Sources"
+      uses: actions/checkout@v3
+
+    - name: "Configure rclone"
+      env:
+        BUS1EU_SSHKEY_PASSWORD_RCLONE: ${{ secrets.BUS1EU_SSHKEY_PASSWORD_RCLONE }}
+        BUS1EU_SSHKEY_PRIVATE: ${{ secrets.BUS1EU_SSHKEY_PRIVATE }}
+        BUS1EU_SSHKEY_USER: ${{ secrets.BUS1EU_SSHKEY_USER }}
+      run: |
+        # Store the SSH keys in the file system.
+        cat <<<"${BUS1EU_SSHKEY_PRIVATE}" >./bus1eu.sshkey
+
+        # Create an rclone configuration for each host.
+        conf=""
+        conf+="[bus1eu]"$'\n'
+        conf+="type = sftp"$'\n'
+        conf+="host = bus1.eu"$'\n'
+        conf+="user = ${BUS1EU_SSHKEY_USER}"$'\n'
+        conf+="key_file = $(pwd)/bus1eu.sshkey"$'\n'
+        conf+="key_file_pass = ${BUS1EU_SSHKEY_PASSWORD_RCLONE}"$'\n'
+        mkdir -p ~/.config/rclone
+        touch ~/.config/rclone/rclone.conf
+        cat <<<"${conf}" >>~/.config/rclone/rclone.conf
+
+    - name: "Deploy"
+      run: |
+        rclone sync ./lib/bus1.eu bus1eu:public_html/sites/bus1.eu
+
+    - name: "Cleanup rclone"
+      run: |
+        rm -f "./bus1eu.sshkey"
+        rm -rf "~/.config/rclone"

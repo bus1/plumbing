@@ -1,0 +1,5 @@
+Redirect /lib/bus1 https://github.com/bus1/bus1
+Redirect /lib/cabuild https://github.com/bus1/cabuild
+Redirect /lib/dbus-broker https://github.com/bus1/dbus-broker
+Redirect /lib/plumbing https://github.com/bus1/plumbing
+Redirect / https://github.com/bus1/
