@@ -8,7 +8,7 @@ tooling required for the project.
 
 ### Project
 
- * **Website**: <https://github.com/bus1/plumbing>
+ * **Website**: <https://bus1.eu/lib/plumbing>
  * **Bug Tracker**: <https://github.com/bus1/plumbing/issues>
 
 ### Repository:
